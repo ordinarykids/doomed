@@ -1,8 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { createClient } from '@vercel/kv';
-import { OPENAI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN } from '$env/static/private';
+import { OPENAI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN, ELEVENLABS_API_KEY } from '$env/static/private';
 import OpenAI from 'openai';
+import fetch from 'node-fetch';
+import { ElevenLabsClient, play } from "elevenlabs";
 
 const kv = createClient({
   url: KV_REST_API_URL,
@@ -36,7 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
         {
           role: "user",
           content: [
-            { type: "text", text: "What's in this image?" },
+            { type: "text", text: "Write a 4 rap hip hop bars in the style of MF Doom. Complicated, intericate rhyme style, with a lot of double time flow and interlocking rhymes. " },
             {
               type: "image_url",
               image_url: {
@@ -50,7 +52,25 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const result = response.choices[0].message.content;
 
-    return json({ result });
+
+
+
+    const elevenlabs = new ElevenLabsClient({
+        apiKey: ELEVENLABS_API_KEY // Defaults to process.env.ELEVENLABS_API_KEY
+      })
+  
+      const audio = await elevenlabs.generate({
+        voice: "pAc30HnsHYqBrSh4ok48",
+        text: result,
+        model_id: "eleven_multilingual_v2"
+      });
+  
+      await play(audio);
+
+
+
+    // Return the audio file to the user
+    return json({ audio: 'yes' });
   } catch (error) {
     console.error(error);
     return json({ error: 'Server error' }, { status: 500 });
