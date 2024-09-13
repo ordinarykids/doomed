@@ -14,16 +14,23 @@
 
     async function startCamera() {
       try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ 
+        const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { facingMode: { ideal: "environment" } } // Use "environment" for front-facing camera
         });
+        videoStream = stream;
         if (videoElement) {
           videoElement.srcObject = videoStream;
           videoElement.style.width = '300px'; // Set the desired width
           videoElement.style.height = 'auto'; // Maintain aspect ratio
+          videoElement.setAttribute('muted', '');
+          videoElement.defaultMuted = true;
         }
       } catch (err) {
-        error = 'Could not access the camera.';
+        if (err.name === 'NotAllowedError') {
+          error = 'Camera access was denied. Please allow camera access in your browser settings.';
+        } else {
+          error = 'Could not access the camera.';
+        }
         console.error(err);
       }
     }
