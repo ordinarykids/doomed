@@ -33,12 +33,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Process with OpenAI
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: "Write a 4 rap hip hop bars in the style of MF Doom. Complicated, intericate rhyme style, with a lot of double time flow and interlocking rhymes. " },
+            { type: "text", text: "Use the photo to inspire a villain story. Write a 4 rap hip hop bars in the style of MF Doom. Complicated, intericate rhyme style, with a lot of double time flow and interlocking rhymes. " },
             {
               type: "image_url",
               image_url: {
