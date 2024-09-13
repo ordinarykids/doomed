@@ -112,7 +112,7 @@
   </script>
   
   <div class="flex flex-col items-center justify-center min-h-screen p-4">
-    <video bind:this={videoElement} autoplay class="mb-4 max-w-full h-auto rounded-lg shadow-lg"></video>
+    <video bind:this={videoElement} playsinline autoplay class="mb-4 max-w-full h-auto rounded-lg shadow-lg"></video>
     <Button on:click={startCamera} class="mb-4">
       Start Camera
     </Button>
