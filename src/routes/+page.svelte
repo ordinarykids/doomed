@@ -2,14 +2,16 @@
     import { Camera } from 'lucide-svelte';
     import { Button } from '$lib/components/ui/button';
     import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
-  
+    import { onMount } from 'svelte';
+
     let image: File | null = null;
     let uploading = false;
     let result: string | null = null;
     let error: string | null = null;
     let videoStream: MediaStream | null = null;
     let videoElement: HTMLVideoElement | null = null;
-  
+    let audioUrl = '';
+
     async function startCamera() {
       try {
         videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -22,22 +24,25 @@
       }
     }
   
-    function capturePhoto() {
-      if (!videoElement) return;
+    async function capturePhoto() {
+      // Implement your photo capture logic here
+      // For example, using the MediaDevices API
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+
       const canvas = document.createElement('canvas');
-      canvas.width = videoElement.videoWidth;
-      canvas.height = videoElement.videoHeight;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            image = new File([blob], 'captured.png', { type: 'image/png' });
-          }
-        });
-      }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+      stream.getTracks().forEach(track => track.stop()); // Stop the video stream
+      return new File([blob], 'photo.jpg', { type: 'image/jpeg' });
     }
-  
+
     async function handleUpload() {
       if (!image) {
         error = 'Please capture an image first.';
@@ -69,6 +74,35 @@
         uploading = false;
       }
     }
+
+    async function uploadPhoto() {
+      const file = await capturePhoto();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        audioUrl = URL.createObjectURL(audioBlob);
+        playAudio();
+        setTimeout(uploadPhoto, 5000); // Take another photo after 5 seconds
+      } else {
+        console.error('Failed to upload photo');
+      }
+    }
+
+    function playAudio() {
+      const audio = new Audio(audioUrl);
+      audio.play();
+    }
+
+    onMount(() => {
+      uploadPhoto();
+    });
   </script>
   
   <div class="flex flex-col items-center justify-center min-h-screen p-4">

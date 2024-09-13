@@ -15,12 +15,21 @@ const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
+let isProcessing = false;
+
 export const POST: RequestHandler = async ({ request }) => {
+  if (isProcessing) {
+    return json({ error: 'Currently processing another request. Please wait.' }, { status: 429 });
+  }
+
+  isProcessing = true;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
     if (!file) {
+      isProcessing = false;
       return json({ error: 'No file uploaded' }, { status: 400 });
     }
 
@@ -52,27 +61,27 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const result = response.choices[0].message.content;
 
-
-
-
     const elevenlabs = new ElevenLabsClient({
         apiKey: ELEVENLABS_API_KEY // Defaults to process.env.ELEVENLABS_API_KEY
-      })
-  
-      const audio = await elevenlabs.generate({
-        voice: "pAc30HnsHYqBrSh4ok48",
-        text: result,
-        model_id: "eleven_multilingual_v2"
       });
   
-      await play(audio);
-
-
+    const audio = await elevenlabs.generate({
+      voice: "pAc30HnsHYqBrSh4ok48",
+      text: result,
+      model_id: "eleven_multilingual_v2"
+    });
 
     // Return the audio file to the user
-    return json({ audio: 'yes' });
+    isProcessing = false;
+    return new Response(audio, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': 'attachment; filename="audio.mp3"'
+      }
+    });
   } catch (error) {
     console.error(error);
+    isProcessing = false;
     return json({ error: 'Server error' }, { status: 500 });
   }
 };
