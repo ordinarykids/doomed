@@ -17,6 +17,8 @@
         videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoElement) {
           videoElement.srcObject = videoStream;
+          videoElement.style.width = '300px'; // Set the desired width
+          videoElement.style.height = 'auto'; // Maintain aspect ratio
         }
       } catch (err) {
         error = 'Could not access the camera.';
