@@ -14,7 +14,9 @@
 
     async function startCamera() {
       try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: { exact: "environment" } } // Use "environment" for front-facing camera
+        });
         if (videoElement) {
           videoElement.srcObject = videoStream;
           videoElement.style.width = '300px'; // Set the desired width
@@ -29,7 +31,9 @@
     async function capturePhoto() {
       // Implement your photo capture logic here
       // For example, using the MediaDevices API
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: { exact: "environment" } } // Use "environment" for front-facing camera
+      });
       const video = document.createElement('video');
       video.srcObject = stream;
       await video.play();
